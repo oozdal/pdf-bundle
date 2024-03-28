@@ -107,23 +107,40 @@ jobs:
           id: login-ecr
           uses: aws-actions/amazon-ecr-login@v1
   
-        # Build and push Docker image to ECR
-        - name: ECRtask
-          id: ECRtaskrun
+        - name: Get a docker image tag for AWS ECR
           env:
-            ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-            ECR_REPOSITORY: pdfbundle
+            REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+            REPOSITORY: geods
             IMAGE_TAG: latest
           run: |
-            df -h
-            ls
-            echo $ { GITHUB_WORKSPACE }
-            
-            #docker rmi `docker images -q`
-            docker build -t $ECR_REPOSITOR .
-            docker tag $ECR_REPOSITORY:$IMAGE_TAG   $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG          
-            echo "Pushing image to ECR..."
-            docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-            
-            # Set the output variable to the URI of the pushed image
-            echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+              echo "ecr_image=$REGISTRY/$REPOSITORY" > $GITHUB_ENV
+                      
+        - name: Set up QEMU
+          uses: docker/setup-qemu-action@v2
+
+        - name: Set up Docker Buildx
+          uses: docker/setup-buildx-action@v2
+
+        - name: Docker meta
+          id: docker_meta
+          uses: docker/metadata-action@v4
+          with:
+            images: ${{ env.ecr_image }}
+            flavor: |
+              latest=false
+            tags: |
+              type=raw,value=latest,enable=${{ endsWith(github.ref, github.event.repository.default_branch) }}
+              type=ref,event=pr
+              type=ref,event=branch
+              type=semver,pattern={{version}}
+              
+        - name: Build, Tag, and Push The Docker Image to Amazon ECR
+          uses: docker/build-push-action@v4
+          with:
+            context: .
+            file: ./DockerFile
+            push: true
+            tags: ${{ steps.docker_meta.outputs.tags }}
+            labels: ${{ steps.docker_meta.outputs.labels }}
+            #cache-from: type=gha
+            #cache-to: type=gha, mode=max
