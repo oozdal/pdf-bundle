@@ -41,49 +41,17 @@ jobs:
     steps:
         - uses: actions/checkout@v2
               
-        - name: Set cache date
-          id: date
-          run: echo "::set-output name=date::$(date +'%Y-WeekNo%U')"
-    
-        - uses: actions/cache@v2
+        - name: Set up Python 3.10
+          uses: actions/setup-python@v2
           with:
-            path: /usr/share/miniconda3/envs/pdfbundle
-            key: conda-${{ hashFiles('pytest_environment.yml') }}-${{ steps.date.outputs.date }}-${{ env.CACHE_NUMBER }}
-          id: cache
-
-        # See: https://github.com/marketplace/actions/setup-miniconda
-        - name: Setup miniconda
-          uses: conda-incubator/setup-miniconda@v2.2.0
-          with:
-            auto-update-conda: true
-            miniforge-variant: Mambaforge
-            channels: conda-forge
-            python-version: 3.10.10
-            activate-environment: pdfbundle
-            environment-file: requirements.txt
-            use-mamba: true
-            use-only-tar-bz2: false
-                   
-        - name: Update Dependencies
-          run: mamba env update -n pdfbundle -f requirements.txt
-          if: steps.cache.outputs.cache-hit != 'true'
-
-        - name: Activate pdfbundle
+            python-version: 3.10
+  
+        - name: Install dependencies
           run: |
-            conda activate pdfbundle
-            python -m ipykernel install --user --name pdfbundle
-            python -m pip install .
-            python setup.py install
-      
-        # Caching pytest to select automatically and execute only tests affected by recent changes!
-        - uses: actions/cache@v2
-          with:
-            path: .testmondata
-            key: testmon=${{ steps.date.outputs.date }}-${{ env.CACHE_NUMBER }}
-                 
-        - name: Test with pytest
-          shell: bash -el {0}
+            python -m pip install --upgrade pip
+            pip install -r requirements.txt
+  
+        - name: Run tests
           run: |
-            pytest --testmon-forceselect
-
+            python -m pytest tests
 
