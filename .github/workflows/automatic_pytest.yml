@@ -110,7 +110,7 @@ jobs:
         - name: Get a docker image tag for AWS ECR
           env:
             REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-            REPOSITORY: geods
+            REPOSITORY: pdfbundle
             IMAGE_TAG: latest
           run: |
               echo "ecr_image=$REGISTRY/$REPOSITORY" > $GITHUB_ENV
