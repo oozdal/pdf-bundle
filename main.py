@@ -3,13 +3,20 @@ from src.pdfBundle.read_pdf import read_document
 from src.pdfBundle.chunk_data import chunk_data
 from src.pdfBundle.transformer import encoder
 from fastapi import FastAPI
+from fastapi import status
 
 
 app = FastAPI()
 
 
-@app.get("/query_response")
-async def first_api():
+@app.get("/health", status_code=status.HTTP_200_OK)
+def health_check():
+    return {'status': 'Healthy'}
+
+
+@app.post("/query_search")
+async def query_search(prompt: str = "rshar-Tnitldy.KnmfOXodpr(:6636-66460Ctakhm:HqdkZmc.\u0000rrnbhZshnmenqBnlotsZshnmZkKhmfthrshbr0Wt:X0",
+                    k: int = 2):
 
     # Pinecone Connection
     pc, index = connector()
@@ -27,8 +34,8 @@ async def first_api():
     model, embeddings = encoder(sentences)
 
     # Query the embeddings
-    our_prompt = "Document AI is a growing research field that focuses on the comprehension and extraction of information"
-    query_response = query_vectors(index, model, prompt=our_prompt)
+    #our_prompt = "Document AI is a growing research field that focuses on the comprehension and extraction of information"
+    query_response = query_vectors(index, model, prompt=prompt, k=k)
     
     results = {"ID" : [], "cosine_similarity": []}
     matches = query_response.get("matches")
@@ -36,4 +43,4 @@ async def first_api():
         results['ID'].append(matches[count]['id'])
         results['cosine_similarity'].append(matches[count]['score'])
 
-    return {"Response" : str(results)}
+    return {"Response" : results}

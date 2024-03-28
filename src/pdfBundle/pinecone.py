@@ -25,7 +25,7 @@ def upsert_vectors(index, sentences, embeddings):
     return upsert_response
 
 
-def query_vectors(index, model, prompt, namespace="example-namespace", k=2):
+def query_vectors(index, model, prompt, k=2, namespace="example-namespace"):
 
     embedded_prompt = model.encode(prompt)
 
