@@ -67,11 +67,7 @@ jobs:
             aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID"
             aws configure set aws_secret_access_key "$AWS_SECRET_ACCESS_KEY"
             aws configure set region "$AWS_DEFAULT_REGION"
-            
-        #- name: Download PDF from S3
-        #  run: |
-        #    aws s3 cp s3://pdfbundle/2401.15050.pdf ./research/documents/samples_test.pdf            
-  
+              
         - name: Run tests
           env: 
             PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
