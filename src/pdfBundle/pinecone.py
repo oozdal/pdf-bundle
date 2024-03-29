@@ -1,11 +1,16 @@
 import os
 from pinecone import Pinecone
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def connector():
-    pc = Pinecone(api_key="00de6be5-b2b9-49bc-8630-a2c2ed8d94a6")
-    index = pc.Index(host='langchainvector-81vyvdw.svc.gcp-starter.pinecone.io')
-    return pc, index
+    pc = Pinecone(api_key=os.getenv('PINECONE_API_KEY'))
+    list_indexes = pc.list_indexes()
+    pinecone_host = list_indexes[0]['host']
+    index = pc.Index(host=pinecone_host)
+    return pc, index, pinecone_host
 
 
 def upsert_vectors(index, sentences, embeddings):
