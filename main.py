@@ -24,7 +24,7 @@ async def query_search(prompt: str = "rshar-Tnitldy.KnmfOXodpr(:6636-66460Ctakhm
                     n_top: int = 2):
 
     # Pinecone Connection
-    pc, index = connector()
+    _, index, *_ = connector()
 
     # Download the input file from AWS S3 bucket
     bucket_name = 'pdfbundle'
