@@ -20,8 +20,12 @@ def upload_file_to_s3(file_path, bucket_name, object_name=None):
         with open(file_path, 'rb') as data:
             my_bucket.upload_fileobj(data, object_name)
         print(f"File '{file_path}' uploaded successfully to S3 bucket '{bucket_name}' as '{object_name}'")
+        success = True
+        return success
     except Exception as e:
         print(f"Error uploading file '{file_path}' to S3 bucket '{bucket_name}': {e}")
+        success = False
+        return success
 
 
 if __name__ == "__main__":

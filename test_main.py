@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 from fastapi import status
 from main import app
+from src.pdfBundle.upload_file import upload_file_to_s3
 
 client = TestClient(app)
 
@@ -10,6 +11,11 @@ def test_return_health_check():
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {'status': 'Healthy'}
 
+def test_upload_file():
+    filepath = './requirements.txt'
+    bucket_name = 'pdfbundle'
+    success = upload_file_to_s3(filepath, bucket_name)
+    assert success == True
 
 def test_query_search():
     requested_data = {
