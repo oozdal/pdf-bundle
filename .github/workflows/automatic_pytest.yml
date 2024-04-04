@@ -86,7 +86,7 @@ jobs:
         shell: bash -el {0}
 
     name: "Build and Push to AWS ECR"
-    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event_name == 'push' || ( github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true && github.event.pull_request.head.ref != 'main' ) # this job will only run if the PR has been merged from dev branchs
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || ( github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true && github.event.pull_request.head.ref != 'main' ) # this job will only run if the PR has been merged from dev branchs
     runs-on: ubuntu-22.04
     steps:
         # Clean unnecessary files to save disk space

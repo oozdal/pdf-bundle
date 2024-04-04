@@ -19,10 +19,11 @@ ENV AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
 ENV AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
 ENV AWS_REGION=$AWS_REGION
 
-RUN aws configure set aws_access_key_id AWS_ACCESS_KEY_ID
-RUN aws configure set aws_secret_access_key AWS_SECRET_ACCESS_KEY
-RUN aws configure set region AWS_REGION
-RUN aws configure set output "json"
+# Run aws configure lines
+RUN aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID && \
+    aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY && \
+    aws configure set region $AWS_REGION && \
+    aws configure set output json
 
 # Make port 80 available to the world outside this container
 EXPOSE 80
