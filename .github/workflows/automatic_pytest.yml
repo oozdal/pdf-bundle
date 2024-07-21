@@ -12,7 +12,7 @@ on:
     types: [ closed, opened, synchronize, reopened ]
   
   schedule:
-    - cron: "0 18 * * SUN" # Run every Sunday at 18:00 PM UTC
+    - cron: "0 21 * * SUN" # Run every Sunday at 21:00 PM UTC
     
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -68,6 +68,7 @@ jobs:
         - name: Run tests
           env: 
             PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+            PINECONE_HOST: ${{ secrets.PINECONE_HOST }}
             AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
             AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
             AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
