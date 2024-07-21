@@ -1,6 +1,10 @@
 # PDF Bundle
 
+This take-home project has been designed within a timeframe of less than 72 hours, serving as a step in the hiring process for a Senior MLOps role.
+
 PDF Bundle is a tool designed to extract text from PDF documents stored in an AWS S3 bucket, break down these documents into smaller pieces, and generate vector embeddings using Sentence Transformer. These embeddings are then stored in a Pinecone vector database for efficient storage and retrieval.
+
+PDF Bundle provides a user-friendly interface through FastAPI. The `query_search` endpoint facilitates prompt-based searches, allowing users to input queries and swiftly retrieve the most similar vector embeddings. This similarity is determined using cosine similarity, a measure that captures the semantic similarity between vectors. While simplifying the response for usability, PDF Bundle ensures transparency by automatically uploading detailed responses to the S3 bucket. With its seamless integration and robust functionality, PDF Bundle efficiently uncovers the most similar vector embeddings.
 
 ## Features
 
@@ -15,7 +19,7 @@ PDF Bundle is a tool designed to extract text from PDF documents stored in an AW
 
 1. Ensure that the PDF Bundle API server is running on the following server:
    
-   The application is deployed and accessible at: [PdfBundle App](https://pdf-bundle.onrender.com/docs)
+   The application is deployed and accessible at: [Railway](https://pdf-bundle-production.up.railway.app/docs).
 
    Warning: Free Instance Spin-Down Delay
 
