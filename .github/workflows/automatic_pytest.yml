@@ -1,6 +1,3 @@
-# This workflow runs automatically every Sunday at 00:00 UTC and creates a conda cache for the week.
-# In addition, it runs on every push and pull request to main. It skips update dependencies step if cache exists.
-
 name: tests
 
 on:
@@ -14,15 +11,15 @@ on:
       - '*'
     types: [ closed, opened, synchronize, reopened ]
   
-  #schedule:
-  #  - cron: '0 0 * * 0' # Run every Sunday at 00:00
+  schedule:
+    - cron: "0 18 * * SUN" # Run every Sunday at 18:00 PM UTC
     
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 env:
   CACHE_NUMBER: 1  # increase to reset cache manually
-  IMAGE_NAME: pdf-bundle
+  IMAGE_NAME: pdfbundle
 
 permissions: write-all
 
@@ -85,85 +82,67 @@ jobs:
       run:
         shell: bash -el {0}
 
-    name: "Build and Push to AWS ECR"
+    name: "Build and Push to DockerHub"
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || ( github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true && github.event.pull_request.head.ref != 'main' ) # this job will only run if the PR has been merged from dev branchs
     runs-on: ubuntu-22.04
+
     steps:
-        # Clean unnecessary files to save disk space
-        - name: clean unncessary files to save space
-          run: |
-            docker rmi `docker images -q`
-            sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/sudo apt/sources.list.d
-            sudo apt -y autoremove --purge
-            sudo apt -y autoclean
-            sudo apt clean
-            rm --recursive --force "$AGENT_TOOLSDIRECTORY"
-            df -h          
-  
-        # Free up disk space on Ubuntu
-        - name: Free Disk Space (Ubuntu)
-          uses: jlumbroso/free-disk-space@main
-          with:
-            # This might remove tools that are actually needed, if set to "true" but frees about 6 GB
-            tool-cache: false
-            large-packages: true
-            swap-storage: true
-  
-        # Checkout the repository
-        - name: Checkout
-          uses: actions/checkout@v2
-  
-        # Configure AWS credentials
-        - name: AWS cred
-          uses: aws-actions/configure-aws-credentials@v1
-          with:
-            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            aws-region: ${{ secrets.AWS_REGION }}
-  
-        # Login to Amazon ECR
-        - name: Login to Amazon ECR
-          id: login-ecr
-          uses: aws-actions/amazon-ecr-login@v1
-  
-        - name: Get a docker image tag for AWS ECR
-          env:
-            REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-            REPOSITORY: pdfbundle
-            IMAGE_TAG: latest
-          run: |
-              echo "ecr_image=$REGISTRY/$REPOSITORY" > $GITHUB_ENV
-                      
-        - name: Set up QEMU
-          uses: docker/setup-qemu-action@v2
+      - name: Clean unnecessary files to save space
+        run: |
+          docker rmi $(docker images -q)
+          sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/apt/sources.list.d
+          sudo apt -y autoremove --purge
+          sudo apt -y autoclean
+          sudo apt clean
+          rm --recursive --force "$AGENT_TOOLSDIRECTORY"
+          df -h
+          
+      - name: Checkout
+        uses: actions/checkout@v2
+           
+      - name: Login to Docker Hub
+        id: login-dockerhub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_ACCESS_TOKEN }}
+          
+      - name: Get a docker image tag for DockerHub
+        env:
+          REGISTRY: ${{ steps.login-dockerhub.outputs.registry }}
+          REPOSITORY: pdfbundle
+          IMAGE_TAG: latest
+        run: |
+            echo "docker_image=$REGISTRY/$REPOSITORY" > $GITHUB_ENV
 
-        - name: Set up Docker Buildx
-          uses: docker/setup-buildx-action@v2
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
 
-        - name: Docker meta
-          id: docker_meta
-          uses: docker/metadata-action@v4
-          with:
-            images: ${{ env.ecr_image }}
-            flavor: |
-              latest=false
-            tags: |
-              type=raw,value=latest,enable=${{ endsWith(github.ref, github.event.repository.default_branch) }}
-              type=ref,event=pr
-              type=ref,event=branch
-              type=semver,pattern={{version}}
-              
-        - name: Build, Tag, and Push The Docker Image to Amazon ECR
-          uses: docker/build-push-action@v4
-          with:
-            context: .
-            file: ./Dockerfile
-            push: true
-            tags: ${{ steps.docker_meta.outputs.tags }}
-            labels: ${{ steps.docker_meta.outputs.labels }}
-            build-args: |
-              AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
-              AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-              AWS_REGION=${{ secrets.AWS_REGION }}
-            #cache-from: type=gha
-            #cache-to: type=gha, mode=max
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Docker meta
+        id: docker_meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.docker_image }}
+          flavor: |
+            latest=false
+          tags: |
+            type=raw,value=latest,enable=${{ endsWith(github.ref, github.event.repository.default_branch) }}
+            type=ref,event=pr
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+
+      - name: Build, Tag, and Push The Docker Image to Docker Hub
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ozerozdal/pdfbundle:latest
+          labels: ${{ steps.docker_meta.outputs.labels }}
+          build-args: |
+            AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            AWS_REGION=${{ secrets.AWS_REGION }}

@@ -7,7 +7,7 @@ from src.pdfBundle.upload_file import upload_file_to_s3
 from pydantic import BaseModel, constr
 from fastapi import FastAPI
 from fastapi import status
-import json
+import json, os
 
 
 app = FastAPI()
@@ -30,7 +30,13 @@ async def query_search(prompt: str = "rshar-Tnitldy.KnmfOXodpr(:6636-66460Ctakhm
     bucket_name = 'pdfbundle'
     filename = '2401.15050.pdf'
     local_file_path = './research/documents/sample_test.pdf'
-    download_file_from_s3(bucket_name, filename, local_file_path)
+
+    # Check if the file already exists
+    if not os.path.isfile(local_file_path):
+        print(f"{local_file_path} not found. Downloading from S3...")
+        download_file_from_s3(bucket_name, filename, local_file_path)
+    else:
+        print(f"{local_file_path} already exists. No need to download.")
 
     # Read the document
     doc=read_document(local_file_path)
@@ -60,7 +66,7 @@ async def query_search(prompt: str = "rshar-Tnitldy.KnmfOXodpr(:6636-66460Ctakhm
         json.dump(response, outfile)
 
     # Upload the response json to AWS S3 bucket
-    upload_file_to_s3(response_file_path, bucket_name, )
+    # upload_file_to_s3(response_file_path, bucket_name, )
 
     # Return a simplified version of the query response
     return {"Response" : results}
