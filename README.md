@@ -15,7 +15,11 @@ PDF Bundle is a tool designed to extract text from PDF documents stored in an AW
 
 1. Ensure that the PDF Bundle API server is running on the following server:
    
-   [PDF Bundle API Server](http://pdfbundlealb-669840896.us-east-1.elb.amazonaws.com/docs#/default/query_search_query_search_post)
+   The application is deployed and accessible at: [PdfBundle App](https://pdf-bundle.onrender.com/docs)
+
+   Warning: Free Instance Spin-Down Delay
+
+   Please note that the free instance provided by Render may experience spin-down due to inactivity. This could result in delays of 50 seconds or more when processing requests. Please be patient while your web browser tries to load the page.
 
 3. Send a POST request to the API endpoint `/query_search` with the following JSON payload:
 
